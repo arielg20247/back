@@ -1,0 +1,2 @@
+import './../db/models/user';
+

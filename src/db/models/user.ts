@@ -1,0 +1,41 @@
+import { DataTypes } from "sequelize";
+import database from "./../connection";
+
+export const users = database.define(
+  "users",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    email: {
+        type: DataTypes.STRING,
+        unique:true,
+        allowNull:false
+      },
+    name: {
+      type: DataTypes.STRING,
+      unique:true,
+      allowNull:false
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull:false
+    },
+    picture: {
+      type: DataTypes.STRING,
+      allowNull:true
+    },
+  },
+  {
+    timestamps: false,
+  }
+);
+
+const createTable = async() =>{
+    await users.sync();
+}
+
+createTable();
+
