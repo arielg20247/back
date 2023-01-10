@@ -16,12 +16,16 @@ export const users = database.define(
       },
     name: {
       type: DataTypes.STRING,
-      unique:true,
       allowNull:false
     },
     password: {
       type: DataTypes.STRING,
       allowNull:false
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull:false,
+      defaultValue: "ROLE_USER",
     },
     picture: {
       type: DataTypes.STRING,
