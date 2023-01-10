@@ -1,11 +1,12 @@
 const express = require("express");
 let validator = require("email-validator");
+const CryptoJS = require("crypto-js");
 
 let router = express.Router();
 
 import { users } from "../db/models/user";
 
-import { checktoken, checkAdmin, getTokenData } from "../utils/checkToken";
+import { checktoken, getTokenData } from "../utils/checkToken";
 
 //Create user
 
@@ -18,7 +19,7 @@ router.post("/", async (req: any, res: any) => {
     } else {
       const newUser = await users.create({
         name,
-        password,
+        password:CryptoJS.SHA256(password).toString(),
         email,
       });
       res.status(200).json({ ok: true, newUser });
@@ -57,9 +58,6 @@ router.put("/edit/:id", checktoken, async (req: any, res: any) => {
     const { id } = req.params;
     let { name, email, role, picture } = req.body;
 
-    console.log(tokenInfo.role);
-    console.log(id);
-    console.log(tokenInfo.id);
     if (tokenInfo.role === "ROLE_ADMIN" || tokenInfo.id == id) {
       const user = await users.findOne({
         where: { id },
