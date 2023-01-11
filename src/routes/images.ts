@@ -4,6 +4,7 @@ const fs = require("fs");
 let router = express.Router();
 
 import { images } from "../db/models/images";
+import { users } from "../db/models/user";
 
 import { checktoken,getTokenData } from "../utils/checkToken";
 
@@ -43,13 +44,40 @@ router.post("/", checktoken, async (req: any, res: any) => {
   }
 });
 
+
+
+
 //Get image
 
 router.get("/:id", checktoken, async (req: any, res: any) => {
   try {
     const { id } = req.params;
     const image = await images.findOne({
+      include:[{
+        model: users,
+        attributes:['id','name', 'picture']
+    }],
       where: { id },
+    });
+    if (image) {
+      res.status(200).json({ ok: true, image });
+    } else {
+      res.status(404).json({ message: "La imágen no existe." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+//Get all images
+
+router.get("/", checktoken, async (req: any, res: any) => {
+  try {
+    const image = await images.findAll({
+      include:[{
+        model: users,
+        attributes:['id','name', 'picture']
+    }]
     });
     if (image) {
       res.status(200).json({ ok: true, image });
@@ -100,17 +128,25 @@ router.delete("/delete/:id", checktoken, async (req: any, res: any) => {
       const imageData = await images.findOne({
         where: { id },
       });
-  
-      if (
-        imageData &&
-        (tokenInfo.role === "ROLE_ADMIN" || imageData.userId == tokenInfo.id)
-      ) {
-        imageData.destroy();
-        res.status(200).json({ ok: "Imagen borrada" });
-      } else {
+      
+      if (!imageData)
+      {
         res
-          .status(500)
-          .json({ error: "No tienes permiso para borrar la imagen o no existe" });
+        .status(500)
+        .json({ error: "No existe la imagen" });
+      }else
+      {
+        if (
+        
+          (tokenInfo.role === "ROLE_ADMIN" || imageData.userId == tokenInfo.id)
+        ) {
+          imageData.destroy();
+          res.status(200).json({ ok: "Imagen borrada" });
+        } else {
+          res
+            .status(500)
+            .json({ error: "No tienes permiso para borrar la imagen" });
+        }
       }
     } catch (error) {
       res.status(500).json({ error: error });
