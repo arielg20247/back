@@ -28,6 +28,10 @@ export const images = database.define(
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      tagId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
   },
   {
     timestamps: false,
