@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 
 let router = express.Router();
 
@@ -13,6 +14,24 @@ router.post("/", checktoken, async (req: any, res: any) => {
     let { image, comment } = req.body;
 
     let tokenInfo = getTokenData(req, res);
+
+    let imageName = new Date().getTime() + ".jpg";
+
+    let data = image.replace(/^data:image\/\w+;base64,/, "");
+
+    let buf = Buffer.from(data, 'base64');
+    
+
+    fs.writeFile(
+        "./src/images/posts/" + imageName,
+        buf,
+        function (err: any, result: any) {
+          if (err) {
+            console.log("error", err);
+          }
+        }
+      );
+      image = imageName;
     const newImage = await images.create({
       image,
       userId: Number(tokenInfo.id),
