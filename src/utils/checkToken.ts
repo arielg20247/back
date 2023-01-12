@@ -35,7 +35,7 @@ export function getTokenData(req: any, res: any) {
     console.log(res);
     return res;
   } catch (error) {
-    console.log("ADSDASDSADSADADAS");
+    console.log(error);
   }
 }
 

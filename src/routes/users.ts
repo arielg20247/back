@@ -12,20 +12,40 @@ import { checktoken, getTokenData } from "../utils/checkToken";
 
 router.post("/", async (req: any, res: any) => {
   try {
-    let { name, password, email } = req.body;
+    let { name, password, email, picture } = req.body;
+
+    console.log(email);
+
+    console.log(name);
+
+
+    console.log(name.lenght < 8);
 
     if (!validator.validate(email)) {
       res.status(500).json({ error: "Introduce un correo electrónico válido" });
-    } else {
-      const newUser = await users.create({
+    } 
+    else if (name.length < 8) {
+      res.status(500).json({ error: "Introduce nombre de más de 8 caracteres" });
+    }
+    else if (password.length < 8) {
+      res.status(500).json({ error: "Introduce una contraseña de más de 8 caracteres" });
+    }  else {
+      await users.create({
         name,
         password:CryptoJS.SHA256(password).toString(),
         email,
+        picture
       });
-      res.status(200).json({ ok: true, newUser });
+      res.status(200).json({ ok: true });
     }
-  } catch (error) {
-    res.status(500).json({ error: error });
+  } catch (error:any) {
+    if (error.errors[0].message == "email must be unique")
+    {
+      res.status(500).json({ error: "Este correo ya está registrado" });
+    }
+    else{
+      res.status(500).json({ error: error.errors[0].message });
+    }
   }
 });
 
