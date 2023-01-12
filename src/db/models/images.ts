@@ -20,7 +20,15 @@ export const images = database.define(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    numLikes: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      tagId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },

@@ -1,6 +1,4 @@
 const jwt = require("jsonwebtoken");
-const CryptoJS = require("crypto-js");
-import { users } from "../db/models/user";
 
 export const secretKey = "thiIsMyPassword";
 
@@ -32,7 +30,6 @@ export function getTokenData(req: any, res: any) {
         role: decoded.role
       };
     });
-    console.log(res);
     return res;
   } catch (error) {
     console.log(error);
