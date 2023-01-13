@@ -12,7 +12,7 @@ import { checktoken, getTokenData } from "../utils/checkToken";
 
 router.post("/", checktoken, async (req: any, res: any) => {
   try {
-    let { image, comment, tagId } = req.body;
+    let { image, comment, title, tagId } = req.body;
 
     let tokenInfo = getTokenData(req, res);
 
@@ -23,7 +23,7 @@ router.post("/", checktoken, async (req: any, res: any) => {
     let buf = Buffer.from(data, "base64");
 
     fs.writeFile(
-      "./src/images/posts/" + imageName,
+      "./images/posts/" + imageName,
       buf,
       function (err: any, result: any) {
         if (err) {
@@ -37,6 +37,7 @@ router.post("/", checktoken, async (req: any, res: any) => {
       userId: Number(tokenInfo.id),
       comment,
       tagId,
+      title
     });
     res.status(200).json({ ok: true, newImage });
   } catch (error) {
@@ -102,6 +103,7 @@ router.put("/edit/:id", checktoken, async (req: any, res: any) => {
     let tokenInfo = getTokenData(req, res);
     const { id } = req.params;
     let { comment } = req.body;
+    let { title } = req.body;
     let { tagId } = req.body;
 
     const imageData = await images.findOne({
@@ -115,7 +117,8 @@ router.put("/edit/:id", checktoken, async (req: any, res: any) => {
       imageData.update({
         comment,
         date: new Date(),
-        tagId
+        tagId,
+        title
       });
       res.status(200).json({ ok: "Imagen editada" });
     } else {

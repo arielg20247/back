@@ -1,6 +1,7 @@
 const express = require("express");
 let validator = require("email-validator");
 const CryptoJS = require("crypto-js");
+const fs = require("fs");
 
 let router = express.Router();
 
@@ -30,6 +31,27 @@ router.post("/", async (req: any, res: any) => {
     else if (password.length < 8) {
       res.status(500).json({ error: "Introduce una contraseña de más de 8 caracteres" });
     }  else {
+
+      if (picture)
+      {
+        let imageName = new Date().getTime() + ".jpg";
+
+        let data = picture.replace(/^data:image\/\w+;base64,/, "");
+    
+        let buf = Buffer.from(data, "base64");
+    
+        fs.writeFile(
+          "./images/profile/" + imageName,
+          buf,
+          function (err: any, result: any) {
+            if (err) {
+              console.log("error", err);
+            }
+          }
+        );
+        picture = imageName;
+      }
+
       await users.create({
         name,
         password:CryptoJS.SHA256(password).toString(),
