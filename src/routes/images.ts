@@ -90,7 +90,34 @@ router.get("/", checktoken, async (req: any, res: any) => {
     if (image) {
       res.status(200).json({ ok: true, image });
     } else {
-      res.status(404).json({ message: "La imágen no existe." });
+      res.status(404).json({ message: "No hay imágenes." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+//Get all by User
+
+router.get("/user/:id", checktoken, async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const image = await images.findAll({
+      include: [
+        {
+          model: users,
+          attributes: ["id", "name", "picture"],
+        },
+        {
+          model: tags,
+        },    
+      ],
+      where: { userId:id },
+    });
+    if (image) {
+      res.status(200).json({ ok: true, image });
+    } else {
+      res.status(404).json({ message: "No hay imágenes." });
     }
   } catch (error) {
     res.status(500).json({ error: error });
