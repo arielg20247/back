@@ -17,10 +17,3 @@ export const tags = database.define(
     timestamps: false,
   }
 );
-
-
-const createTable = async () => {
-  await tags.sync();
-};
-
-createTable();

@@ -30,9 +30,3 @@ export const comments = database.define(
   }
 );
 
-
-const createTable = async () => {
-  await comments.sync();
-};
-
-createTable();

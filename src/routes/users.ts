@@ -41,7 +41,7 @@ router.post("/", async (req: any, res: any) => {
         let buf = Buffer.from(data, "base64");
     
         fs.writeFile(
-          "./images/profile/" + imageName,
+          "./src/images/profile/" + imageName,
           buf,
           function (err: any, result: any) {
             if (err) {

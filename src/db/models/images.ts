@@ -41,10 +41,3 @@ export const images = database.define(
     timestamps: false,
   }
 );
-
-
-const createTable = async () => {
-  await images.sync();
-};
-
-createTable();

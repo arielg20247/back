@@ -37,9 +37,5 @@ export const users = database.define(
   }
 );
 
-const createTable = async() =>{
-    await users.sync();
-}
 
-createTable();
 

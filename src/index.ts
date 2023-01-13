@@ -1,5 +1,4 @@
 import './db/connection.ts';
-import './db/associations';
 
 const express = require('express')
 const app = express();
