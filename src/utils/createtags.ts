@@ -16,5 +16,4 @@ let createTags = async () => {
   );
 };
 
-
 createTags();

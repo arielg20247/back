@@ -51,7 +51,7 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
   try {
     const { id } = req.params;
     const image = await images.findOne({
-      include: [
+      include: [  
         {
           model: users,
           attributes: ["id", "name", "picture"],

@@ -71,18 +71,20 @@ router.post("/", async (req: any, res: any) => {
   }
 });
 
-//Get user
+//Get my user
 
-router.get("/:id", checktoken, async (req: any, res: any) => {
+router.get("/me", checktoken, async (req: any, res: any) => {
   try {
-    const { id } = req.params;
+    let tokenInfo = getTokenData(req, res);
     const user = await users.findOne({
-      where: { id },
+      where: { id: tokenInfo.id },
     });
     if (user) {
       const userData = {
         name: user.name,
         picture: user.picture,
+        id:user.id,
+        email: user.email
       };
       res.status(200).json({ ok: true, userData });
     } else {
@@ -92,6 +94,46 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
     res.status(500).json({ error: error });
   }
 });
+
+//Get user
+
+router.get("/:id", checktoken, async (req: any, res: any) => {
+  try {
+    const { id } = req.params;
+    const user = await users.findOne({
+      where: { id },
+    });
+    let tokenInfo = getTokenData(req, res);
+
+    if (user) {
+      if (tokenInfo.role === "ROLE_ADMIN" || tokenInfo.id == id)
+      {
+        const userData = {
+          name: user.name,
+          picture: user.picture,
+          id:user.id,
+          email:user.email,
+          role:user.role
+        };
+        res.status(200).json({ ok: true, userData });
+      }
+      else{
+        const userData = {
+          name: user.name,
+          picture: user.picture,
+          id:user.id
+        };
+        res.status(200).json({ ok: true, userData });
+      }    
+    } else {
+      res.status(404).json({ message: "El usuario no existe." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+
 
 //Edit user
 router.put("/edit/:id", checktoken, async (req: any, res: any) => {

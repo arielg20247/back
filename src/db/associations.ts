@@ -29,6 +29,6 @@ export function associations(){
     },
   });
 }
-
+associations();
 
 export default associations;
