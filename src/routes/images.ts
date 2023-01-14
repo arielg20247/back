@@ -41,6 +41,42 @@ router.post("/", checktoken, async (req: any, res: any) => {
     });
     res.status(200).json({ ok: true, newImage });
   } catch (error) {
+    res.status(500).json({ error: "Error subiendo imágen" });
+  }
+});
+
+//Get tags
+
+router.get("/tags", async (req: any, res: any) => {
+  try {
+    const resultTags = await tags.findAll();
+      res.status(200).json({ resultTags });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+//Get all images
+
+router.get("/", checktoken, async (req: any, res: any) => {
+  try {
+    const image = await images.findAll({
+      include: [
+        {
+          model: users,
+          attributes: ["id", "name", "picture"],
+        },
+        {
+          model: tags,
+        },
+      ],
+    });
+    if (image) {
+      res.status(200).json({ ok: true, image });
+    } else {
+      res.status(404).json({ message: "No hay imágenes." });
+    }
+  } catch (error) {
     res.status(500).json({ error: error });
   }
 });
@@ -72,12 +108,13 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
   }
 });
 
-//Get all images
+//Get image
 
-router.get("/", checktoken, async (req: any, res: any) => {
+router.get("/:id", checktoken, async (req: any, res: any) => {
   try {
-    const image = await images.findAll({
-      include: [
+    const { id } = req.params;
+    const image = await images.findOne({
+      include: [  
         {
           model: users,
           attributes: ["id", "name", "picture"],
@@ -86,16 +123,18 @@ router.get("/", checktoken, async (req: any, res: any) => {
           model: tags,
         },
       ],
+      where: { id },
     });
     if (image) {
       res.status(200).json({ ok: true, image });
     } else {
-      res.status(404).json({ message: "No hay imágenes." });
+      res.status(404).json({ message: "La imágen no existe." });
     }
   } catch (error) {
     res.status(500).json({ error: error });
   }
 });
+
 
 //Get all by User
 
