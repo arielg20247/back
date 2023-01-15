@@ -108,11 +108,10 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
     if (image) {
       if (tokenInfo.role === "ROLE_ADMIN" || tokenInfo.id == image.user.id)
         canEdit = true;
-        const like = await likes.findOne({
-          where: { userId:tokenInfo.id, imageId: image.id },
-        });
-        if (like)
-        isLiked = true;
+      const like = await likes.findOne({
+        where: { userId: tokenInfo.id, imageId: image.id },
+      });
+      if (like) isLiked = true;
       res.status(200).json({ ok: true, image, canEdit, isLiked });
     } else {
       res.status(404).json({ message: "La imágen no existe." });
@@ -202,10 +201,7 @@ router.delete("/delete/:id", checktoken, async (req: any, res: any) => {
             { where: { imageId: id } },
             { transaction: t }
           );
-          await likes.destroy(
-            { where: { imageId: id } },
-            { transaction: t }
-          );
+          await likes.destroy({ where: { imageId: id } }, { transaction: t });
           await imageData.destroy({ transaction: t });
         });
 
@@ -216,6 +212,79 @@ router.delete("/delete/:id", checktoken, async (req: any, res: any) => {
           .json({ error: "No tienes permiso para borrar la imagen" });
       }
     }
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+//Like image
+
+router.get("/like/:id", checktoken, async (req: any, res: any) => {
+  try {
+    let tokenInfo = getTokenData(req, res);
+    const { id } = req.params;
+
+    await database.transaction(async (t: Transaction) => {
+      await likes.create(
+        {
+          userId: Number(tokenInfo.id),
+          imageId: Number(id),
+        },
+        { transaction: t }
+      );
+
+      const imageData = await images.findOne(
+        {
+          where: { id },
+        },
+        { transaction: t }
+      );
+      await imageData.update(
+        {
+          numLikes: imageData.numLikes + 1,
+        },
+        { transaction: t }
+      );
+    });
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+//Unlike image
+
+router.get("/unlike/:id", checktoken, async (req: any, res: any) => {
+  try {
+    let tokenInfo = getTokenData(req, res);
+    const { id } = req.params;
+    await database.transaction(async (t: Transaction) => {
+      await likes.findOne(
+        {
+          userId: Number(tokenInfo.id),
+          imageId: Number(id),
+        },
+        { transaction: t }
+      );
+
+      const imageData = await images.findOne(
+        {
+          where: { id },
+        },
+        { transaction: t }
+      );
+      await imageData.update(
+        {
+          numLikes: imageData.numLikes - 1,
+        },
+        { transaction: t }
+      );
+      await likes.destroy(
+        { where: { imageId: id, userId: tokenInfo.id } },
+        { transaction: t }
+      );
+    });
+    res.status(200).json({ ok: true });
   } catch (error) {
     res.status(500).json({ error: error });
   }
