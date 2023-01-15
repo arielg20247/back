@@ -6,6 +6,7 @@ let router = express.Router();
 import { images } from "../db/models/images";
 import { users } from "../db/models/user";
 import { tags } from "../db/models/tags";
+import { likes } from "../db/models/likes";
 import { checktoken, getTokenData } from "../utils/checkToken";
 import { comments } from "../db/models/comments";
 import database from "../db/connection";
@@ -26,7 +27,7 @@ router.post("/", checktoken, async (req: any, res: any) => {
     let buf = Buffer.from(data, "base64");
 
     fs.writeFile(
-      "./src/images/posts/" + imageName,
+      "./images/posts/" + imageName,
       buf,
       function (err: any, result: any) {
         if (err) {
@@ -90,6 +91,7 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
   try {
     const { id } = req.params;
     let canEdit = false;
+    let isLiked = false;
     let tokenInfo = getTokenData(req, res);
     const image = await images.findOne({
       include: [
@@ -106,7 +108,12 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
     if (image) {
       if (tokenInfo.role === "ROLE_ADMIN" || tokenInfo.id == image.user.id)
         canEdit = true;
-      res.status(200).json({ ok: true, image, canEdit });
+        const like = await likes.findOne({
+          where: { userId:tokenInfo.id, imageId: image.id },
+        });
+        if (like)
+        isLiked = true;
+      res.status(200).json({ ok: true, image, canEdit, isLiked });
     } else {
       res.status(404).json({ message: "La imágen no existe." });
     }
@@ -192,6 +199,10 @@ router.delete("/delete/:id", checktoken, async (req: any, res: any) => {
       if (tokenInfo.role === "ROLE_ADMIN" || imageData.userId == tokenInfo.id) {
         await database.transaction(async (t: Transaction) => {
           await comments.destroy(
+            { where: { imageId: id } },
+            { transaction: t }
+          );
+          await likes.destroy(
             { where: { imageId: id } },
             { transaction: t }
           );
