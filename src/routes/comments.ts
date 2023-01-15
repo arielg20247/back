@@ -11,17 +11,38 @@ import { checktoken, getTokenData } from "../utils/checkToken";
 
 router.post("/", checktoken, async (req: any, res: any) => {
   try {
+    
     let { comment, imageId } = req.body;
 
     let tokenInfo = getTokenData(req, res);
 
-    console.log(tokenInfo);
-    const newComment = await comments.create({
-      comment,
-      userId: tokenInfo.id,
-      imageId,
-    });
-    res.status(200).json({ ok: true, newComment });
+    if (comment.length < 8)
+    {
+      res.status(500).json({ error: 'Sube un comentario de al menos 8 caracteres' });
+    }
+    else{
+      console.log(tokenInfo);
+      const newComment = await comments.create({
+        comment,
+        userId: tokenInfo.id,
+        imageId,
+      });
+  
+      const commentData = await comments.findOne({
+        include: [
+          {
+            model: users,
+            attributes: ["id", "name", "picture"],
+          },
+          
+        ],
+        where: { imageId },
+        order: [
+          ['id', 'DESC'],
+      ],
+      });
+      res.status(200).json({ ok: true, commentData });
+    } 
   } catch (error) {
     res.status(500).json({ error: error });
   }
@@ -44,7 +65,7 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
     if (commentData[0]) {
       res.status(200).json({ ok: true, commentData });
     } else {
-      res.status(404).json({ message: "No hay comentarios." });
+      res.status(200).json({ ok: true, commentData });
     }
   } catch (error) {
     res.status(500).json({ error: error });

@@ -7,6 +7,9 @@ import { images } from "../db/models/images";
 import { users } from "../db/models/user";
 import { tags } from "../db/models/tags";
 import { checktoken, getTokenData } from "../utils/checkToken";
+import { comments } from "../db/models/comments";
+import database from "../db/connection";
+import { Transaction } from "sequelize";
 
 //Create image
 
@@ -37,7 +40,7 @@ router.post("/", checktoken, async (req: any, res: any) => {
       userId: Number(tokenInfo.id),
       comment,
       tagId,
-      title
+      title,
     });
     res.status(200).json({ ok: true, newImage });
   } catch (error) {
@@ -50,7 +53,7 @@ router.post("/", checktoken, async (req: any, res: any) => {
 router.get("/tags", async (req: any, res: any) => {
   try {
     const resultTags = await tags.findAll();
-      res.status(200).json({ resultTags });
+    res.status(200).json({ resultTags });
   } catch (error) {
     res.status(500).json({ error: error });
   }
@@ -86,8 +89,10 @@ router.get("/", checktoken, async (req: any, res: any) => {
 router.get("/:id", checktoken, async (req: any, res: any) => {
   try {
     const { id } = req.params;
+    let canEdit = false;
+    let tokenInfo = getTokenData(req, res);
     const image = await images.findOne({
-      include: [  
+      include: [
         {
           model: users,
           attributes: ["id", "name", "picture"],
@@ -99,7 +104,9 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
       where: { id },
     });
     if (image) {
-      res.status(200).json({ ok: true, image });
+      if (tokenInfo.role === "ROLE_ADMIN" || tokenInfo.id == image.user.id)
+        canEdit = true;
+      res.status(200).json({ ok: true, image, canEdit });
     } else {
       res.status(404).json({ message: "La imágen no existe." });
     }
@@ -107,34 +114,6 @@ router.get("/:id", checktoken, async (req: any, res: any) => {
     res.status(500).json({ error: error });
   }
 });
-
-//Get image
-
-router.get("/:id", checktoken, async (req: any, res: any) => {
-  try {
-    const { id } = req.params;
-    const image = await images.findOne({
-      include: [  
-        {
-          model: users,
-          attributes: ["id", "name", "picture"],
-        },
-        {
-          model: tags,
-        },
-      ],
-      where: { id },
-    });
-    if (image) {
-      res.status(200).json({ ok: true, image });
-    } else {
-      res.status(404).json({ message: "La imágen no existe." });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error });
-  }
-});
-
 
 //Get all by User
 
@@ -149,9 +128,9 @@ router.get("/user/:id", checktoken, async (req: any, res: any) => {
         },
         {
           model: tags,
-        },    
+        },
       ],
-      where: { userId:id },
+      where: { userId: id },
     });
     if (image) {
       res.status(200).json({ ok: true, image });
@@ -184,15 +163,13 @@ router.put("/edit/:id", checktoken, async (req: any, res: any) => {
         comment,
         date: new Date(),
         tagId,
-        title
+        title,
       });
       res.status(200).json({ ok: "Imagen editada" });
     } else {
-      res
-        .status(500)
-        .json({
-          error: "No tienes permiso para editar los detalles o no existe",
-        });
+      res.status(500).json({
+        error: "No tienes permiso para editar los detalles o no existe",
+      });
     }
   } catch (error) {
     res.status(500).json({ error: error });
@@ -213,7 +190,14 @@ router.delete("/delete/:id", checktoken, async (req: any, res: any) => {
       res.status(500).json({ error: "No existe la imagen" });
     } else {
       if (tokenInfo.role === "ROLE_ADMIN" || imageData.userId == tokenInfo.id) {
-        imageData.destroy();
+        await database.transaction(async (t: Transaction) => {
+          await comments.destroy(
+            { where: { imageId: id } },
+            { transaction: t }
+          );
+          await imageData.destroy({ transaction: t });
+        });
+
         res.status(200).json({ ok: "Imagen borrada" });
       } else {
         res
