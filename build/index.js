@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-require("../db/connection");
-require("../db/associations");
+require("./db/connection");
+require("./db/associations");
 const express = require('express');
 const app = express();
 const cors = require("cors");
