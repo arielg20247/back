@@ -25,11 +25,11 @@ router.post("/", async (req: any, res: any) => {
     if (!validator.validate(email)) {
       res.status(500).json({ error: "Introduce un correo electrónico válido" });
     } 
-    else if (name.length < 8) {
-      res.status(500).json({ error: "Introduce nombre de más de 8 caracteres" });
+    else if (name.length < 3) {
+      res.status(500).json({ error: "Introduce nombre de al menos 3 caracteres" });
     }
     else if (password.length < 8) {
-      res.status(500).json({ error: "Introduce una contraseña de más de 8 caracteres" });
+      res.status(500).json({ error: "Introduce una contraseña de al menos 8 caracteres" });
     }  else {
 
       if (picture)
